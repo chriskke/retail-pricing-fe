@@ -35,7 +35,7 @@ export default function CompetitorTable({ listings, worseIndex, worseIndexStatus
 
     return (
         <div style={{ background: '#fff', borderRadius: '6px', border: '1px solid #e2e8f0', padding: '1rem' }}>
-            <h5 style={{ marginBottom: '1rem', fontSize: '0.9rem', color: '#64748b' }}>Competitor Analysis</h5>
+
             <div style={{ overflowX: 'auto' }}>
                 <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
                     <thead>
@@ -79,7 +79,7 @@ export default function CompetitorTable({ listings, worseIndex, worseIndexStatus
                                         <div style={{ fontWeight: '500' }}>{l.display_price?.toFixed(2)}</div>
                                         <div style={{ fontSize: '0.75rem', color: '#64748b' }}>Std: {l.normalized_price?.toFixed(2)}</div>
                                     </td>
-                                    <td style={{ textAlign: 'center', fontWeight: 'bold', verticalAlign: 'middle', color: l.raw_status === 'RED' ? 'var(--danger)' : l.raw_status === 'ORANGE' ? 'var(--warning)' : 'var(--success)' }}>
+                                    <td style={{ textAlign: 'center', fontWeight: 'bold', verticalAlign: 'middle', color: l.price_status === 'RED' ? 'var(--danger)' : l.price_status === 'ORANGE' ? 'var(--warning)' : 'var(--success)' }}>
                                         {l.price_index?.toFixed(2)}
                                     </td>
                                     <td style={{ textAlign: 'center', verticalAlign: 'middle' }}>

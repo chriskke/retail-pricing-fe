@@ -2,12 +2,18 @@
 
 import { useState } from 'react';
 import Card from '../components/Card';
+import ConfirmationModal from '../components/ConfirmationModal';
+import ToastNotification from '../components/ToastNotification';
 
 export default function Home() {
   const [file, setFile] = useState<File | null>(null);
   const [status, setStatus] = useState<string>('');
   const [stats, setStats] = useState<any>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+
+  // UI State
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [toast, setToast] = useState<{ msg: string, type: 'success' | 'error' } | null>(null);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -17,7 +23,7 @@ export default function Home() {
 
   const handleUpload = async () => {
     if (!file) {
-      alert('Please select a file');
+      setToast({ msg: 'Please select a file', type: 'error' });
       return;
     }
 
@@ -39,15 +45,15 @@ export default function Home() {
       const data = await res.json();
       setStatus('Success! Data imported.');
       setStats(data.stats);
+      setToast({ msg: 'Data imported successfully', type: 'success' });
     } catch (error) {
       console.error(error);
       setStatus('Error uploading file');
+      setToast({ msg: 'Error uploading file', type: 'error' });
     }
   };
 
   const handleDelete = async () => {
-    if (!confirm('Are you sure you want to delete ALL data? This cannot be undone.')) return;
-
     setIsDeleting(true);
     try {
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
@@ -60,16 +66,30 @@ export default function Home() {
       setStatus('All data cleared.');
       setStats(null);
       setFile(null);
+      setToast({ msg: 'All data deleted successfully', type: 'success' });
     } catch (error) {
       console.error(error);
-      alert('Failed to delete data.');
+      setToast({ msg: 'Failed to delete data', type: 'error' });
     } finally {
       setIsDeleting(false);
+      setShowDeleteModal(false);
     }
   };
 
   return (
     <div style={{ maxWidth: '1200px', margin: '0 auto', width: '100%' }}>
+      {toast && <ToastNotification message={toast.msg} type={toast.type} onClose={() => setToast(null)} />}
+
+      <ConfirmationModal
+        isOpen={showDeleteModal}
+        title="Delete All Data"
+        message="Are you sure you want to delete ALL data? This includes products, competitor listings, price history, and the Action Board. This cannot be undone."
+        confirmText="Delete Everything"
+        isProcessing={isDeleting}
+        onConfirm={handleDelete}
+        onCancel={() => setShowDeleteModal(false)}
+      />
+
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
         <h1>Import Data</h1>
       </div>
@@ -131,7 +151,7 @@ export default function Home() {
             <p style={{ marginBottom: '1rem', color: 'var(--text-secondary)' }}>
               Clear all products, competitor listings, and price history from the database.
             </p>
-            <button onClick={handleDelete} className="btn btn-danger" disabled={isDeleting}>
+            <button onClick={() => setShowDeleteModal(true)} className="btn btn-danger" disabled={isDeleting}>
               {isDeleting ? 'Deleting...' : 'Delete All Data'}
             </button>
           </Card>

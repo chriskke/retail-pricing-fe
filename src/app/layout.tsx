@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import '../styles/globals.css';
 import Sidebar from '../components/Sidebar';
+import { ActionProvider } from '../context/ActionContext';
 
 export const metadata: Metadata = {
   title: 'Retail Analytics Dashboard',
@@ -15,14 +16,16 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
-        <div className="app-container">
-          <div className="sidebar-wrapper">
-            <Sidebar />
+        <ActionProvider>
+          <div className="app-container">
+            <div className="sidebar-wrapper">
+              <Sidebar />
+            </div>
+            <main className="main-content">
+              {children}
+            </main>
           </div>
-          <main className="main-content">
-            {children}
-          </main>
-        </div>
+        </ActionProvider>
       </body>
     </html>
   );
