@@ -1,66 +1,152 @@
-import Image from "next/image";
-import styles from "./page.module.css";
+'use client';
+
+import { useState } from 'react';
+import Card from '../components/Card';
 
 export default function Home() {
+  const [file, setFile] = useState<File | null>(null);
+  const [status, setStatus] = useState<string>('');
+  const [stats, setStats] = useState<any>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      setFile(e.target.files[0]);
+    }
+  };
+
+  const handleUpload = async () => {
+    if (!file) {
+      alert('Please select a file');
+      return;
+    }
+
+    setStatus('Uploading...');
+    const formData = new FormData();
+    formData.append('file', file);
+
+    try {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+      const res = await fetch(`${apiUrl}/upload`, {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!res.ok) {
+        throw new Error('Upload failed');
+      }
+
+      const data = await res.json();
+      setStatus('Success! Data imported.');
+      setStats(data.stats);
+    } catch (error) {
+      console.error(error);
+      setStatus('Error uploading file');
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!confirm('Are you sure you want to delete ALL data? This cannot be undone.')) return;
+
+    setIsDeleting(true);
+    try {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+      const res = await fetch(`${apiUrl}/upload`, {
+        method: 'DELETE',
+      });
+
+      if (!res.ok) throw new Error('Delete failed');
+
+      setStatus('All data cleared.');
+      setStats(null);
+      setFile(null);
+    } catch (error) {
+      console.error(error);
+      alert('Failed to delete data.');
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
   return (
-    <div className={styles.page}>
-      <main className={styles.main}>
-        <Image
-          className={styles.logo}
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className={styles.intro}>
-          <h1>To get started, edit the page.tsx file.</h1>
-          <p>
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+    <div style={{ maxWidth: '1200px', margin: '0 auto', width: '100%' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
+        <h1>Import Data</h1>
+      </div>
+
+      <div className="import-grid" style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) 300px', gap: '2rem' }}>
+        <div style={{ gridColumn: '1 / -1' }}>
+          <Card title="Upload CSV">
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', maxWidth: '500px', width: '100%' }}>
+              <div>
+                <p style={{ marginBottom: '0.5rem', color: 'var(--text-secondary)' }}>Select a CSV file containing product and competitor data.</p>
+                <input
+                  type="file"
+                  accept=".csv"
+                  onChange={handleFileChange}
+                  style={{ padding: '0.5rem', border: '1px solid var(--border-color)', borderRadius: '6px', width: '100%' }}
+                />
+              </div>
+
+              <div style={{ display: 'flex', gap: '1rem' }}>
+                <button onClick={handleUpload} className="btn btn-primary" disabled={!file}>
+                  Upload & Process
+                </button>
+              </div>
+
+              {status && (
+                <div style={{
+                  padding: '1rem',
+                  background: status.includes('Error') ? '#fef2f2' : '#f0fdf4',
+                  color: status.includes('Error') ? 'var(--danger)' : 'var(--success)',
+                  borderRadius: '6px',
+                  border: '1px solid currentColor'
+                }}>
+                  {status}
+                </div>
+              )}
+            </div>
+          </Card>
+
+          {stats && (
+            <Card title="Last Import Statistics">
+              <div className="stats-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1rem', textAlign: 'center' }}>
+                <div>
+                  <h3 style={{ fontSize: '2rem', color: 'var(--primary)' }}>{stats.rowsProcessed}</h3>
+                  <p style={{ color: 'var(--text-secondary)' }}>Rows Processed</p>
+                </div>
+                <div>
+                  <h3 style={{ fontSize: '2rem', color: 'var(--primary)' }}>{stats.productsUpserted}</h3>
+                  <p style={{ color: 'var(--text-secondary)' }}>Products Updated</p>
+                </div>
+                <div>
+                  <h3 style={{ fontSize: '2rem', color: 'var(--primary)' }}>{stats.listingsCreated}</h3>
+                  <p style={{ color: 'var(--text-secondary)' }}>Listings Created</p>
+                </div>
+              </div>
+            </Card>
+          )}
+
+          <Card title="Danger Zone">
+            <p style={{ marginBottom: '1rem', color: 'var(--text-secondary)' }}>
+              Clear all products, competitor listings, and price history from the database.
+            </p>
+            <button onClick={handleDelete} className="btn btn-danger" disabled={isDeleting}>
+              {isDeleting ? 'Deleting...' : 'Delete All Data'}
+            </button>
+          </Card>
         </div>
-        <div className={styles.ctas}>
-          <a
-            className={styles.primary}
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className={styles.logo}
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className={styles.secondary}
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
+        <style jsx global>{`
+          @media (max-width: 768px) {
+            .import-grid {
+               grid-template-columns: 1fr !important;
+            }
+            .stats-grid {
+               grid-template-columns: 1fr !important;
+            }
+          }
+        `}</style>
+      </div>
     </div>
   );
 }
