@@ -4,6 +4,7 @@ import { useState } from 'react';
 import Card from '../components/Card';
 import ConfirmationModal from '../components/ConfirmationModal';
 import ToastNotification from '../components/ToastNotification';
+import styles from '../styles/Home.module.css';
 
 export default function Home() {
   const [file, setFile] = useState<File | null>(null);
@@ -77,7 +78,7 @@ export default function Home() {
   };
 
   return (
-    <div style={{ maxWidth: '1200px', margin: '0 auto', width: '100%' }}>
+    <div className={styles.container}>
       {toast && <ToastNotification message={toast.msg} type={toast.type} onClose={() => setToast(null)} />}
 
       <ConfirmationModal
@@ -90,38 +91,32 @@ export default function Home() {
         onCancel={() => setShowDeleteModal(false)}
       />
 
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
+      <div className={styles.header}>
         <h1>Import Data</h1>
       </div>
 
-      <div className="import-grid" style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) 300px', gap: '2rem' }}>
-        <div style={{ gridColumn: '1 / -1' }}>
+      <div className={styles.grid}>
+        <div className={styles.mainColumn}>
           <Card title="Upload CSV">
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', maxWidth: '500px', width: '100%' }}>
+            <div className={styles.uploadCardContent}>
               <div>
-                <p style={{ marginBottom: '0.5rem', color: 'var(--text-secondary)' }}>Select a CSV file containing product and competitor data.</p>
+                <p className={styles.helperText}>Select a CSV file containing product and competitor data.</p>
                 <input
                   type="file"
                   accept=".csv"
                   onChange={handleFileChange}
-                  style={{ padding: '0.5rem', border: '1px solid var(--border-color)', borderRadius: '6px', width: '100%' }}
+                  className={styles.fileInput}
                 />
               </div>
 
-              <div style={{ display: 'flex', gap: '1rem' }}>
+              <div className={styles.buttonGroup}>
                 <button onClick={handleUpload} className="btn btn-primary" disabled={!file}>
                   Upload & Process
                 </button>
               </div>
 
               {status && (
-                <div style={{
-                  padding: '1rem',
-                  background: status.includes('Error') ? '#fef2f2' : '#f0fdf4',
-                  color: status.includes('Error') ? 'var(--danger)' : 'var(--success)',
-                  borderRadius: '6px',
-                  border: '1px solid currentColor'
-                }}>
+                <div className={`${styles.statusMessage} ${status.includes('Error') ? styles.statusError : styles.statusSuccess}`}>
                   {status}
                 </div>
               )}
@@ -130,25 +125,25 @@ export default function Home() {
 
           {stats && (
             <Card title="Last Import Statistics">
-              <div className="stats-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1rem', textAlign: 'center' }}>
+              <div className={styles.statsGrid}>
                 <div>
-                  <h3 style={{ fontSize: '2rem', color: 'var(--primary)' }}>{stats.rowsProcessed}</h3>
-                  <p style={{ color: 'var(--text-secondary)' }}>Rows Processed</p>
+                  <h3 className={styles.statValue}>{stats.rowsProcessed}</h3>
+                  <p className={styles.statLabel}>Rows Processed</p>
                 </div>
                 <div>
-                  <h3 style={{ fontSize: '2rem', color: 'var(--primary)' }}>{stats.productsUpserted}</h3>
-                  <p style={{ color: 'var(--text-secondary)' }}>Products Updated</p>
+                  <h3 className={styles.statValue}>{stats.productsUpserted}</h3>
+                  <p className={styles.statLabel}>Products Updated</p>
                 </div>
                 <div>
-                  <h3 style={{ fontSize: '2rem', color: 'var(--primary)' }}>{stats.listingsCreated}</h3>
-                  <p style={{ color: 'var(--text-secondary)' }}>Listings Created</p>
+                  <h3 className={styles.statValue}>{stats.listingsCreated}</h3>
+                  <p className={styles.statLabel}>Listings Created</p>
                 </div>
               </div>
             </Card>
           )}
 
           <Card title="Danger Zone">
-            <p style={{ marginBottom: '1rem', color: 'var(--text-secondary)' }}>
+            <p className={styles.dangerText}>
               Clear all products, competitor listings, and price history from the database.
             </p>
             <button onClick={() => setShowDeleteModal(true)} className="btn btn-danger" disabled={isDeleting}>
@@ -156,16 +151,6 @@ export default function Home() {
             </button>
           </Card>
         </div>
-        <style jsx global>{`
-          @media (max-width: 768px) {
-            .import-grid {
-               grid-template-columns: 1fr !important;
-            }
-            .stats-grid {
-               grid-template-columns: 1fr !important;
-            }
-          }
-        `}</style>
       </div>
     </div>
   );

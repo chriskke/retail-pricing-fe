@@ -1,0 +1,108 @@
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    width: 100%;
+}
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+}
+
+.grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 300px;
+    gap: 2rem;
+}
+
+.mainColumn {
+    grid-column: 1 / -1;
+    /* The original layout had grid-column 1 / -1 for the main content which effectively made it full width? 
+       Wait, looking at the code: 
+       <div style={{ gridColumn: '1 / -1' }}>
+       Inside a grid with 2 columns. This means it spans both. 
+       Let's assume the intention was to actually use the 2 column layout if there was a sidebar or secondary column, 
+       but currently it's just one column spanning everything. 
+       However, the original code had: gridTemplateColumns: 'minmax(0, 1fr) 300px'
+       And content was: <div style={{ gridColumn: '1 / -1' }}>
+       So it was effectively ignored. I will replicate the behavior but maybe the user intended 2 columns.
+       I will keep it as spanning full width for now to match exactly.
+    */
+    grid-column: 1 / -1;
+}
+
+.uploadCardContent {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    max-width: 500px;
+    width: 100%;
+}
+
+.helperText {
+    margin-bottom: 0.5rem;
+    color: var(--text-secondary);
+}
+
+.fileInput {
+    padding: 0.5rem;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    width: 100%;
+}
+
+.buttonGroup {
+    display: flex;
+    gap: 1rem;
+}
+
+.statusMessage {
+    padding: 1rem;
+    border-radius: 6px;
+    border: 1px solid currentColor;
+}
+
+.statusSuccess {
+    background: #f0fdf4;
+    color: var(--success);
+}
+
+.statusError {
+    background: #fef2f2;
+    color: var(--danger);
+}
+
+.statsGrid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+    text-align: center;
+}
+
+.statValue {
+    font-size: 2rem;
+    color: var(--primary);
+    font-weight: 600;
+    /* Added font-weight for better look */
+}
+
+.statLabel {
+    color: var(--text-secondary);
+}
+
+.dangerText {
+    margin-bottom: 1rem;
+    color: var(--text-secondary);
+}
+
+@media (max-width: 768px) {
+    .grid {
+        grid-template-columns: 1fr;
+    }
+
+    .statsGrid {
+        grid-template-columns: 1fr;
+    }
+}

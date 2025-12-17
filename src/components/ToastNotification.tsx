@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import styles from './ToastNotification.module.css';
 
 interface ToastProps {
     message: string;
@@ -13,33 +14,22 @@ export default function ToastNotification({ message, type, duration = 3000, onCl
     const [visible, setVisible] = useState(false);
 
     useEffect(() => {
-        setVisible(true); // Trigger fade in
-        const timer = setTimeout(() => {
-            setVisible(false); // Trigger fade out
+        // Small delay to ensure the initial render happens before the animation class is added
+        const timerIn = setTimeout(() => setVisible(true), 10);
+
+        const timerOut = setTimeout(() => {
+            setVisible(false);
             setTimeout(onClose, 300); // Remove after animation
         }, duration);
-        return () => clearTimeout(timer);
+
+        return () => {
+            clearTimeout(timerIn);
+            clearTimeout(timerOut);
+        };
     }, [duration, onClose]);
 
     return (
-        <div style={{
-            position: 'fixed',
-            top: '20px',
-            left: '50%',
-            transform: `translateX(-50%) translateY(${visible ? '0' : '-20px'})`,
-            opacity: visible ? 1 : 0,
-            transition: 'all 0.3s ease-in-out',
-            zIndex: 9999,
-            background: type === 'success' ? '#10b981' : '#ef4444',
-            color: '#fff',
-            padding: '12px 24px',
-            borderRadius: '8px',
-            boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px',
-            fontWeight: 500
-        }}>
+        <div className={`${styles.toast} ${visible ? styles.visible : ''} ${type === 'success' ? styles.success : styles.error}`}>
             <span>{type === 'success' ? '✓' : '⚠'}</span>
             <span>{message}</span>
         </div>
