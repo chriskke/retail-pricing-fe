@@ -198,12 +198,16 @@ export default function DashboardPage() {
                         ) : (
                             history.map((h: any, idx: number) => (
                                 <div key={idx} className={styles.recentItem}>
-                                    <div className={styles.iconBox} style={{
-                                        background: h.change_type === 'MATCH' ? '#f0f9ff' : h.change_type === 'UNDERCUT' ? '#fdf2f8' : '#fff7ed',
-                                        color: h.change_type === 'MATCH' ? '#0ea5e9' : h.change_type === 'UNDERCUT' ? '#db2777' : '#ea580c',
-                                    }}>
-                                        {h.change_type === 'MATCH' ? 'M' : h.change_type === 'UNDERCUT' ? 'U' : 'R'}
-                                    </div>
+                                    {h.product?.image_url ? (
+                                        <img src={h.product.image_url} alt="" style={{ width: '40px', height: '40px', borderRadius: '4px', objectFit: 'cover', marginRight: '1rem' }} />
+                                    ) : (
+                                        <div className={styles.iconBox} style={{
+                                            background: h.change_type === 'MATCH' ? '#f0f9ff' : h.change_type === 'UNDERCUT' ? '#fdf2f8' : '#fff7ed',
+                                            color: h.change_type === 'MATCH' ? '#0ea5e9' : h.change_type === 'UNDERCUT' ? '#db2777' : '#ea580c',
+                                        }}>
+                                            {h.change_type === 'MATCH' ? 'M' : h.change_type === 'UNDERCUT' ? 'U' : 'R'}
+                                        </div>
+                                    )}
                                     <div className={styles.recentDetails}>
                                         <div className={styles.productTitle}>{h.product?.title || 'Unknown Product'}</div>
                                         <div className={styles.priceChange}>

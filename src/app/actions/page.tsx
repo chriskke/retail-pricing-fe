@@ -518,7 +518,7 @@ export default function ActionBoardPage() {
                                 background: Object.keys(priceActions).length > 0 ? '#2563eb' : '#e2e8f0', // Blue button
                                 color: Object.keys(priceActions).length > 0 ? '#fff' : '#94a3b8',
                                 border: 'none', cursor: Object.keys(priceActions).length > 0 ? 'pointer' : 'not-allowed',
-                                padding: '0.5rem 1rem', borderRadius: '4px', fontWeight: '500'
+                                padding: '0.4rem 0.8rem', borderRadius: '4px', fontWeight: '500', fontSize: '0.8rem'
                             }}>
                             Change Price
                         </button>
@@ -711,22 +711,22 @@ export default function ActionBoardPage() {
                                                         <img src={p.image_url} alt="" style={{ width: '40px', height: '40px', borderRadius: '4px', objectFit: 'cover' }} />
                                                     ) : <div style={{ width: '40px', height: '40px', background: '#f1f5f9', borderRadius: '4px' }} />}
                                                     <div>
-                                                        <div style={{ fontWeight: '500', color: '#0f172a' }}>{p.title}</div>
-                                                        <div style={{ fontSize: '0.75rem', color: '#64748b' }}>{p.category}</div>
+                                                        <div style={{ fontWeight: '500', color: '#0f172a', fontSize: '0.9rem' }}>{p.title}</div>
+                                                        <div style={{ fontSize: '0.7rem', color: '#64748b' }}>{p.category}</div>
                                                     </div>
                                                 </div>
-                                                <div style={{ textAlign: 'center', color: '#64748b' }}>{p.history_old_price?.toFixed(2) || '-'}</div>
-                                                <div style={{ textAlign: 'center', fontWeight: 'bold' }}>{p.history_new_price?.toFixed(2) || '-'}</div>
+                                                <div style={{ textAlign: 'center', color: '#64748b', fontSize: '0.9rem' }}>{p.history_old_price?.toFixed(2) || '-'}</div>
+                                                <div style={{ textAlign: 'center', fontWeight: 'bold', fontSize: '0.9rem' }}>{p.history_new_price?.toFixed(2) || '-'}</div>
                                                 <div style={{ textAlign: 'center' }}>
                                                     <span style={{
-                                                        padding: '2px 6px', borderRadius: '4px', fontSize: '0.75rem', fontWeight: '500',
+                                                        padding: '2px 6px', borderRadius: '4px', fontSize: '0.7rem', fontWeight: '500',
                                                         background: p.history_action_type === 'MATCH' ? '#dbeafe' : p.history_action_type === 'UNDERCUT' ? '#fee2e2' : p.history_action_type === 'REDUCE' ? '#fef3c7' : '#f1f5f9',
                                                         color: p.history_action_type === 'MATCH' ? '#1e40af' : p.history_action_type === 'UNDERCUT' ? '#991b1b' : p.history_action_type === 'REDUCE' ? '#92400e' : '#475569'
                                                     }}>
                                                         {p.history_action_type || '-'}
                                                     </span>
                                                 </div>
-                                                <div style={{ textAlign: 'center', fontSize: '0.8rem', color: '#64748b' }}>
+                                                <div style={{ textAlign: 'center', fontSize: '0.75rem', color: '#64748b' }}>
                                                     {p.history_created_at ? new Date(p.history_created_at).toLocaleDateString() : '-'}
                                                 </div>
                                             </>

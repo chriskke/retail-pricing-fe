@@ -37,9 +37,9 @@ export default function CompetitorViz({ data }: CompetitorVizProps) {
         const bg = type === 'THEY' ? '#fee2e2' : '#dcfce7';
 
         return (
-            <div key={stats.vendor} style={{ marginBottom: '0.75rem' }}>
+            <div key={stats.vendor} onClick={() => router.push(`/analytics?tab=products&competitor=${encodeURIComponent(stats.vendor)}`)} style={{ marginBottom: '0.75rem', cursor: 'pointer' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.25rem', fontSize: '0.85rem' }}>
-                    <span style={{ fontWeight: '600', color: '#334155' }}>{stats.vendor}</span>
+                    <span style={{ fontWeight: 'normal', color: '#334155' }}>{stats.vendor}</span>
                     <span style={{ color: '#64748b' }}>{count} products ({pct.toFixed(1)}%)</span>
                 </div>
                 <div style={{ width: '100%', height: '8px', background: '#f1f5f9', borderRadius: '4px', overflow: 'hidden' }}>
@@ -54,7 +54,7 @@ export default function CompetitorViz({ data }: CompetitorVizProps) {
             <div style={{ background: '#fff', padding: '1.5rem', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
                     <h3 style={{ fontSize: '1rem', fontWeight: 'bold', color: '#0f172a', margin: 0 }}>
-                        Products Where Competitors Are Cheaper
+                        Total Products They Are Cheaper
                     </h3>
                     <button
                         onClick={() => router.push('/analytics?tab=competitors')}
@@ -73,7 +73,7 @@ export default function CompetitorViz({ data }: CompetitorVizProps) {
             <div style={{ background: '#fff', padding: '1.5rem', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
                     <h3 style={{ fontSize: '1rem', fontWeight: 'bold', color: '#0f172a', margin: 0 }}>
-                        Products Where We Are Cheaper
+                        Total Products We Are Cheaper
                     </h3>
                     <button
                         onClick={() => router.push('/analytics?tab=competitors')}

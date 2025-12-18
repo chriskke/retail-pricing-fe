@@ -54,23 +54,41 @@ export default function AnalyticsPage() {
     const [isInitialized, setIsInitialized] = useState(false);
 
     useEffect(() => {
+        const queryCompetitor = searchParams.get('competitor');
         const savedFilters = sessionStorage.getItem('analytics_filters');
         const savedTab = sessionStorage.getItem('analytics_tab');
         const queryTab = searchParams.get('tab');
 
-        if (savedFilters) {
-            try {
-                setFilters(JSON.parse(savedFilters));
-            } catch (e) {
-                console.error("Failed to parse filters", e);
+        if (queryCompetitor) {
+            // Drill-down from Competitor View: valid competitor param resets usage
+            setActiveTab('products');
+            setFilters({
+                search: '',
+                status: [],
+                confidence: [],
+                category: [],
+                segment: [],
+                collection: [],
+                product_type: [],
+                competitor: [decodeURIComponent(queryCompetitor)],
+                sortBy: 'default',
+                order: 'desc'
+            });
+        } else {
+            if (savedFilters) {
+                try {
+                    setFilters(JSON.parse(savedFilters));
+                } catch (e) {
+                    console.error("Failed to parse filters", e);
+                }
             }
-        }
 
-        // Priority: Query Param > Saved Session > Default 'products'
-        if (queryTab === 'products' || queryTab === 'competitors') {
-            setActiveTab(queryTab);
-        } else if (savedTab && (savedTab === 'products' || savedTab === 'competitors')) {
-            setActiveTab(savedTab as 'products' | 'competitors');
+            // Priority: Query Param > Saved Session > Default 'products'
+            if (queryTab === 'products' || queryTab === 'competitors') {
+                setActiveTab(queryTab);
+            } else if (savedTab && (savedTab === 'products' || savedTab === 'competitors')) {
+                setActiveTab(savedTab as 'products' | 'competitors');
+            }
         }
         setIsInitialized(true);
     }, [searchParams]);
@@ -463,7 +481,7 @@ export default function AnalyticsPage() {
                                             type="checkbox"
                                             checked={isAllSelected || allOnPageSelected}
                                             onChange={() => !isAllSelected && toggleSelectAllPage(productData.products.map((p: any) => p.product_id))}
-                                            style={{ cursor: 'pointer', width: '16px', height: '16px' }}
+                                            style={{ cursor: 'pointer', transform: 'scale(0.85)', margin: 0 }}
                                         />
                                     </div>
                                     <div style={{ cursor: 'pointer' }} onClick={() => toggleSort('title')}>
@@ -530,7 +548,7 @@ export default function AnalyticsPage() {
                                                                 checked={isAllSelected || selectedItems.has(p.product_id)}
                                                                 onChange={(e) => { toggleItem(p.product_id); }}
                                                                 disabled={isAllSelected} // items on board are hidden, so we don't need isConfirmed check
-                                                                style={{ cursor: 'pointer', width: '16px', height: '16px' }}
+                                                                style={{ cursor: 'pointer', transform: 'scale(0.85)', margin: 0 }}
                                                             />
                                                         </div>
                                                         <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>

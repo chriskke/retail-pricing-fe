@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 
 interface CompetitorStats {
     vendor: string;
@@ -26,6 +27,7 @@ interface CompetitorOverviewTableProps {
 }
 
 export default function CompetitorOverviewTable({ data, loading, sort, handleSort }: CompetitorOverviewTableProps) {
+    const router = useRouter();
     // Removed early return for loading to preserve layout/scroll
 
     const renderHeader = (label: string, colKey: string, align: 'left' | 'center' | 'right' = 'center') => (
@@ -77,7 +79,7 @@ export default function CompetitorOverviewTable({ data, loading, sort, handleSor
                         ) : (
                             data.map((row, idx) => (
                                 <tr key={idx} style={{ borderBottom: '1px solid #f1f5f9', background: idx % 2 === 0 ? '#fff' : '#fafbfc' }}>
-                                    <td style={{ padding: '1rem', fontWeight: '500', color: '#1e293b' }}>
+                                    <td onClick={() => router.push(`/analytics?tab=products&competitor=${encodeURIComponent(row.vendor)}`)} style={{ padding: '1rem', fontWeight: '500', color: '#2563eb', cursor: 'pointer', textDecoration: 'underline' }}>
                                         {row.vendor}
                                     </td>
                                     <td style={{ padding: '1rem', textAlign: 'center' }}>

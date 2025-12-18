@@ -161,7 +161,7 @@ export default function SettingsPage() {
                     onClick={saveSettings}
                     disabled={saving}
                     className="btn btn-primary"
-                    style={{ padding: '0.75rem 2rem', minWidth: '150px' }}
+                    style={{ padding: '0.5rem 1.5rem', minWidth: '120px', fontSize: '0.9rem' }}
                 >
                     {saving ? 'Saving...' : saved ? 'Saved!' : 'Save'}
                 </button>
