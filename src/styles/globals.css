@@ -10,13 +10,20 @@
     --success: #22c55e;
     --warning: #f59e0b;
 
-    --sidebar-width: 250px;
-    --header-height: 64px;
+    /* Scaled Sidebar Width: 16rem * 11px = ~176px (vs 250px previously) */
+    --sidebar-width: 16rem;
+    --header-height: 4rem;
+    /* 64px approx */
 
     --text-muted: #94a3b8;
     --border-hover: #cbd5e1;
     --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
     --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+}
+
+html {
+    /* Scale down entire app to ~69% (11px / 16px) */
+    font-size: 11px;
 }
 
 * {
@@ -30,6 +37,16 @@ body {
     background: var(--bg-color);
     color: var(--text-primary);
     -webkit-font-smoothing: antialiased;
+    font-size: 1.4rem;
+    /* Reset body text to ~15.4px (1.4 * 11) for readability, or keep 1rem? */
+    /* If I set html to 11px, 1rem = 11px. Body text will be 11px if I don't adjust.
+       User said "font and layout is too large".
+       If they want "67%", they probably mean everything.
+       So 11px body text is probably what they want if they found 16px too big.
+       I will keep body font-size as default (1rem) or basic inheritance.
+       Actually, standard is 1rem. So body text becomes 11px.
+       Let's trust the "67%" request.
+    */
 }
 
 a {

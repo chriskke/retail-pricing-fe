@@ -45,49 +45,35 @@ export function ActionProvider({ children }: { children: ReactNode }) {
 
     const addToActionBoard = async (ids: string[]) => {
         try {
-            // Optimistic Update
-            const newSet = new Set(actionBoardItems);
-            ids.forEach(id => newSet.add(id));
-            setActionBoardItems(newSet);
-
+            // No Optimistic Update - Wait for DB to ensure consistency
             // API Call
             await fetch(`${process.env.NEXT_PUBLIC_API_URL}/actions/add`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ ids })
             });
+
+            // Refresh state from server
+            refreshActionBoard();
         } catch (e) {
             console.error("Failed to add to action board", e);
-            // Revert optimistic update if API call fails (optional, but good practice)
-            setActionBoardItems(prev => {
-                const revertedSet = new Set(prev);
-                ids.forEach(id => revertedSet.delete(id));
-                return revertedSet;
-            });
         }
     };
 
     const removeFromActionBoard = async (ids: string[]) => {
         try {
-            // Optimistic Update
-            const newSet = new Set(actionBoardItems);
-            ids.forEach(id => newSet.delete(id));
-            setActionBoardItems(newSet);
-
+            // No Optimistic Update
             // API Call
             await fetch(`${process.env.NEXT_PUBLIC_API_URL}/actions/remove`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ ids })
             });
+
+            // Refresh state from server
+            refreshActionBoard();
         } catch (e) {
             console.error("Failed to remove from action board", e);
-            // Revert optimistic update if API call fails (optional, but good practice)
-            setActionBoardItems(prev => {
-                const revertedSet = new Set(prev);
-                ids.forEach(id => revertedSet.add(id));
-                return revertedSet;
-            });
         }
     };
 

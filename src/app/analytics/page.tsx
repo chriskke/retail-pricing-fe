@@ -2,7 +2,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useActionContext } from '../../context/ActionContext';
 import DistributionBar from '../../components/DistributionBar';
 import CompetitorTable from '../../components/CompetitorTable';
@@ -12,6 +12,7 @@ import ToastNotification from '../../components/ToastNotification';
 
 export default function AnalyticsPage() {
     const router = useRouter();
+    const searchParams = useSearchParams();
     // Access Context
     const { selectedItems, toggleItem, toggleSelectAllPage, isAllSelected, setSelectAllGlobal, clearSelection, selectionCount, actionBoardItems, addToActionBoard, refreshActionBoard } = useActionContext();
 
@@ -55,6 +56,8 @@ export default function AnalyticsPage() {
     useEffect(() => {
         const savedFilters = sessionStorage.getItem('analytics_filters');
         const savedTab = sessionStorage.getItem('analytics_tab');
+        const queryTab = searchParams.get('tab');
+
         if (savedFilters) {
             try {
                 setFilters(JSON.parse(savedFilters));
@@ -62,11 +65,15 @@ export default function AnalyticsPage() {
                 console.error("Failed to parse filters", e);
             }
         }
-        if (savedTab && (savedTab === 'products' || savedTab === 'competitors')) {
+
+        // Priority: Query Param > Saved Session > Default 'products'
+        if (queryTab === 'products' || queryTab === 'competitors') {
+            setActiveTab(queryTab);
+        } else if (savedTab && (savedTab === 'products' || savedTab === 'competitors')) {
             setActiveTab(savedTab as 'products' | 'competitors');
         }
         setIsInitialized(true);
-    }, []);
+    }, [searchParams]);
 
     useEffect(() => {
         if (!isInitialized) return;
@@ -74,9 +81,7 @@ export default function AnalyticsPage() {
         sessionStorage.setItem('analytics_tab', activeTab);
     }, [filters, activeTab, isInitialized]);
 
-    useEffect(() => {
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-    }, [page, competitorPage]);
+
 
     // Filter Options
     const [filterOptions, setFilterOptions] = useState({
@@ -122,11 +127,10 @@ export default function AnalyticsPage() {
             query.append('page', page.toString());
             query.append('limit', '20');
 
-            // Exclude items already on the board
-            const excludeList = Array.from(actionBoardItems);
-            if (excludeList.length > 0) {
-                excludeList.forEach(id => query.append('excludeIds', id));
-            }
+            query.append('limit', '20');
+
+            // Backend now handles auto-exclusion of board items, so we don't need to pass them in URL.
+            // This prevents URL length issues with large exclusion lists.
 
             fetch(process.env.NEXT_PUBLIC_API_URL + '/analytics/products?' + query.toString())
                 .then(res => {
@@ -258,6 +262,14 @@ export default function AnalyticsPage() {
         <div style={{ maxWidth: '100%', overflowX: 'hidden' }}>
             {toast && <ToastNotification message={toast.msg} type={toast.type} onClose={() => setToast(null)} />}
 
+            {/* Header */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
+                <div>
+                    <h1 style={{ fontSize: '1.8rem', fontWeight: 'bold', color: '#0f172a' }}>Analytics</h1>
+                    <p style={{ color: '#64748b' }}>Analyze market trends and competitor pricing.</p>
+                </div>
+            </div>
+
             {/* 1. Top Summary Bar (Dynamic based on Tab) */}
             {activeTab === 'products' ? (
                 <div className="summary-grid" style={{ display: 'grid', gap: '1rem', marginBottom: '1.5rem' }}>
@@ -271,9 +283,9 @@ export default function AnalyticsPage() {
                         <div style={{ fontSize: '1.8rem', fontWeight: 'bold', color: '#ef4444' }}>{productData.summary.immediate_action_count || 0}</div>
                         <div style={{ fontSize: '0.8rem', color: '#f87171' }}>{productData.summary.immediate_action_pct || 0}% of {productData.summary.total_db_count || 0} products</div>
                         <button
-                            className="btn btn-danger"
+                            className="btn"
                             onClick={() => handleBulkAdd('IMMEDIATE_ACTION')}
-                            style={{ width: '100%', fontSize: '0.85rem', marginTop: 'auto', padding: '0.4rem' }}
+                            style={{ width: '100%', fontSize: '0.85rem', marginTop: 'auto', padding: '0.4rem', background: '#ef4444', color: '#fff', border: 'none' }}
                         >
                             Add all to Action Plan
                         </button>
@@ -418,8 +430,18 @@ export default function AnalyticsPage() {
             <div>
                 {activeTab === 'products' ? (
                     <>
-                        {loading ? <div>Loading products...</div> : (
-                            <div style={{ background: '#fff', borderRadius: '8px', border: '1px solid #e2e8f0', overflow: 'hidden', overflowY: 'auto', overflowX: 'auto', maxHeight: '70vh' }}>
+                        <div style={{ position: 'relative' }}>
+                            {loading && (
+                                <div style={{
+                                    position: 'absolute', inset: 0, background: 'rgba(255,255,255,0.6)', zIndex: 20,
+                                    display: 'flex', justifyContent: 'center', alignItems: 'center', backdropFilter: 'blur(1px)', borderRadius: '8px'
+                                }}>
+                                    <div style={{ background: '#fff', padding: '0.75rem 1.5rem', borderRadius: '8px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)', fontWeight: '500', color: '#0f172a' }}>
+                                        Updating...
+                                    </div>
+                                </div>
+                            )}
+                            <div style={{ background: '#fff', borderRadius: '8px', border: '1px solid #e2e8f0', overflow: 'hidden', overflowY: 'auto', overflowX: 'auto', maxHeight: '80vh' }}>
                                 {/* Header - Sticky */}
                                 <div style={{
                                     display: 'grid',
@@ -565,7 +587,7 @@ export default function AnalyticsPage() {
                                     )}
                                 </div>
                             </div>
-                        )}
+                        </div>
 
                         {/* Pagination */}
                         <div style={{ display: 'flex', justifyContent: 'center', marginTop: '2rem', gap: '0.5rem' }}>

@@ -1,18 +1,26 @@
 "use client";
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import CompetitorViz from '../../components/CompetitorViz';
+import styles from './Dashboard.module.css';
 
 export default function DashboardPage() {
     const router = useRouter();
     const [stats, setStats] = useState<any>(null);
+    const [competitorStats, setCompetitorStats] = useState<any>(null);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        fetch(`${process.env.NEXT_PUBLIC_API_URL}/dashboard/stats`)
-            .then(res => res.json())
-            .then(data => {
-                if (data.success) {
-                    setStats(data);
+        Promise.all([
+            fetch(`${process.env.NEXT_PUBLIC_API_URL}/dashboard/stats`).then(res => res.json()),
+            fetch(`${process.env.NEXT_PUBLIC_API_URL}/analytics/competitors`).then(res => res.json())
+        ])
+            .then(([dashboardData, compData]) => {
+                if (dashboardData.success) {
+                    setStats(dashboardData);
+                }
+                if (compData.competitors) {
+                    setCompetitorStats(compData);
                 }
                 setLoading(false);
             })
@@ -26,31 +34,6 @@ export default function DashboardPage() {
     if (!stats) return <div style={{ padding: '2rem', color: '#ef4444' }}>Failed to load dashboard data.</div>;
 
     const { analytics, actions, history } = stats;
-
-    const cardStyle: React.CSSProperties = {
-        background: '#fff',
-        borderRadius: '16px',
-        padding: '1.5rem',
-        boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03)',
-        border: '1px solid #f1f5f9',
-        display: 'flex',
-        flexDirection: 'column',
-        justifyContent: 'space-between'
-    };
-
-    const valueStyle: React.CSSProperties = {
-        fontSize: '2.5rem',
-        fontWeight: '700',
-        color: '#0f172a',
-        lineHeight: '1.2'
-    };
-
-    const labelStyle: React.CSSProperties = {
-        color: '#64748b',
-        fontSize: '0.9rem',
-        fontWeight: '500',
-        marginTop: '0.5rem'
-    };
 
     // Calculate ring segments for donut chart
     const totalStatus = analytics.status.immediate + analytics.status.attention + analytics.status.good;
@@ -66,118 +49,132 @@ export default function DashboardPage() {
     )`;
 
     return (
-        <div style={{ padding: '2rem', maxWidth: '1400px', margin: '0 auto', fontFamily: 'Inter, sans-serif' }}>
+        <div className={styles.container}>
             {/* Header */}
-            <div style={{ marginBottom: '2.5rem' }}>
-                <h1 style={{ fontSize: '2rem', fontWeight: '800', color: '#1e293b', letterSpacing: '-0.025em' }}>Overview</h1>
-                <p style={{ color: '#64748b', marginTop: '0.5rem' }}>Welcome back. Here's what's happening with your pricing today.</p>
+            <div className={styles.header}>
+                <div>
+                    <h1 style={{ fontSize: '1.8rem', fontWeight: 'bold', color: '#0f172a' }}>Overview</h1>
+                    <p style={{ color: '#64748b' }}>Welcome back. Here's what's happening with your pricing today.</p>
+                </div>
             </div>
 
             {/* Top Metrics Grid */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '1.5rem', marginBottom: '2.5rem' }}>
-                {/* Card 1: Total Products */}
-                <div style={cardStyle}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+            <div className={styles.statsGrid}>
+                {/* Card 1: Main Metric (Products to Review) */}
+                <div className={styles.card}>
+                    <div className={styles.cardHeader}>
                         <div>
-                            <div style={valueStyle}>{analytics.total_products}</div>
-                            <div style={labelStyle}>Total Products</div>
+                            <div className={styles.metricValue}>{analytics.total_products}</div>
+                            <div className={styles.metricLabel}>Products to Review</div>
                         </div>
+                    </div>
+                    {/* LINK FIX: Products to Review -> Analytics (Product View) */}
+                    <div
+                        className={styles.cardLink}
+                        onClick={() => router.push('/analytics?tab=products')}
+                    >
+                        Review →
                     </div>
                 </div>
 
-                {/* Card 3: Pending Actions */}
-                <div
-                    style={{ ...cardStyle, cursor: 'pointer', border: '1px solid #bfdbfe', background: '#eff6ff' }}
-                    onClick={() => router.push('/actions')}
-                >
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                {/* Card 2: Pending Actions */}
+                <div className={styles.card}>
+                    <div className={styles.cardHeader}>
                         <div>
-                            <div style={{ ...valueStyle, color: '#1d4ed8' }}>{actions.pending}</div>
-                            <div style={{ ...labelStyle, color: '#1e40af' }}>Pending Actions</div>
+                            <div className={styles.metricValue}>{actions.pending}</div>
+                            <div className={styles.metricLabel}>Pending Actions</div>
                         </div>
                     </div>
-                    <div style={{ fontSize: '0.85rem', color: '#3b82f6', marginTop: '1rem', fontWeight: '600' }}>
-                        Review Actions →
+                    <div
+                        className={styles.cardLink}
+                        onClick={() => router.push('/actions')}
+                    >
+                        Review →
                     </div>
                 </div>
 
-                {/* Card 4: Action Velocity (Completed) */}
-                <div style={cardStyle}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                {/* Card 3: Action Velocity (Completed) */}
+                <div className={styles.card}>
+                    <div className={styles.cardHeader}>
                         <div>
-                            <div style={valueStyle}>{actions.completed}</div>
-                            <div style={labelStyle}>Completed Actions</div>
+                            <div className={styles.metricValue}>{actions.completed}</div>
+                            <div className={styles.metricLabel}>Completed Actions</div>
                         </div>
+                    </div>
+                    {/* LINK FIX: Completed Actions -> Action Board (Completed View) */}
+                    <div
+                        className={styles.cardLink}
+                        onClick={() => router.push('/actions?tab=COMPLETED')}
+                    >
+                        Review →
                     </div>
                 </div>
             </div>
 
             {/* Main Content Grid */}
-            <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '2rem' }}>
+            <div className={styles.mainGrid}>
 
                 {/* Left Column: Analytics & Health */}
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
 
-                    {/* Price Health Section */}
-                    <div style={cardStyle}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-                            <h2 style={{ fontSize: '1.25rem', fontWeight: '700', color: '#1e293b' }}>Price Health</h2>
-                            <button
-                                onClick={() => router.push('/analytics')}
-                                style={{ background: 'none', border: 'none', color: '#2563eb', fontWeight: '600', cursor: 'pointer' }}
-                            >
-                                View Analytics →
-                            </button>
+                {/* Price Health Section */}
+                <div className={styles.card}>
+                    <div className={styles.cardHeader}>
+                        <h2 className={styles.cardTitle}>Price Health</h2>
+                        <button
+                            onClick={() => router.push('/analytics')}
+                            className={styles.cardLink}
+                        >
+                            View Analytics →
+                        </button>
+                    </div>
+
+                    <div className={styles.chartContainer}>
+                        {/* Donut Chart Visual */}
+                        <div className={styles.donutWrapper} style={{ background: donutGradient }}>
+                            <div className={styles.donutInner}>
+                                <div className={styles.donutTotal}>{totalStatus}</div>
+                                <div className={styles.donutLabel}>Matched</div>
+                            </div>
                         </div>
 
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '3rem' }}>
-                            {/* Donut Chart Visual */}
-                            <div style={{ position: 'relative', width: '160px', height: '160px', borderRadius: '50%', background: donutGradient, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                <div style={{ width: '120px', height: '120px', background: '#fff', borderRadius: '50%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
-                                    <div style={{ fontSize: '1.5rem', fontWeight: 'bold' }}>{totalStatus}</div>
-                                    <div style={{ fontSize: '0.8rem', color: '#64748b' }}>Matched</div>
+                        {/* Legend */}
+                        <div className={styles.legendContainer}>
+                            <div className={styles.legendItem}>
+                                <div className={styles.legendHeader}>
+                                    <div className={styles.legendLabelGroup}>
+                                        <div className={styles.legendDot} style={{ background: '#ef4444' }}></div>
+                                        <span className={styles.legendLabel}>Immediate Action</span>
+                                    </div>
+                                    <span className={styles.legendValue}>{analytics.status.immediate}</span>
+                                </div>
+                                <div className={styles.progressBarBack}>
+                                    <div className={styles.progressBarFill} style={{ width: `${pRed}%`, background: '#ef4444' }}></div>
                                 </div>
                             </div>
 
-                            {/* Legend */}
-                            <div style={{ flex: 1 }}>
-                                <div style={{ marginBottom: '1rem' }}>
-                                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.25rem' }}>
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                                            <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: '#ef4444' }}></div>
-                                            <span style={{ fontWeight: '500', color: '#475569' }}>Immediate Action</span>
-                                        </div>
-                                        <span style={{ fontWeight: 'bold' }}>{analytics.status.immediate}</span>
+                            <div className={styles.legendItem}>
+                                <div className={styles.legendHeader}>
+                                    <div className={styles.legendLabelGroup}>
+                                        <div className={styles.legendDot} style={{ background: '#f59e0b' }}></div>
+                                        <span className={styles.legendLabel}>Attention Needed</span>
                                     </div>
-                                    <div style={{ width: '100%', height: '6px', background: '#f1f5f9', borderRadius: '3px' }}>
-                                        <div style={{ width: `${pRed}%`, height: '100%', background: '#ef4444', borderRadius: '3px' }}></div>
-                                    </div>
+                                    <span className={styles.legendValue}>{analytics.status.attention}</span>
                                 </div>
-
-                                <div style={{ marginBottom: '1rem' }}>
-                                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.25rem' }}>
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                                            <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: '#f59e0b' }}></div>
-                                            <span style={{ fontWeight: '500', color: '#475569' }}>Attention Needed</span>
-                                        </div>
-                                        <span style={{ fontWeight: 'bold' }}>{analytics.status.attention}</span>
-                                    </div>
-                                    <div style={{ width: '100%', height: '6px', background: '#f1f5f9', borderRadius: '3px' }}>
-                                        <div style={{ width: `${pOrange}%`, height: '100%', background: '#f59e0b', borderRadius: '3px' }}></div>
-                                    </div>
+                                <div className={styles.progressBarBack}>
+                                    <div className={styles.progressBarFill} style={{ width: `${pOrange}%`, background: '#f59e0b' }}></div>
                                 </div>
+                            </div>
 
-                                <div>
-                                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.25rem' }}>
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                                            <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: '#22c55e' }}></div>
-                                            <span style={{ fontWeight: '500', color: '#475569' }}>Healthy</span>
-                                        </div>
-                                        <span style={{ fontWeight: 'bold' }}>{analytics.status.good}</span>
+                            <div>
+                                <div className={styles.legendHeader}>
+                                    <div className={styles.legendLabelGroup}>
+                                        <div className={styles.legendDot} style={{ background: '#22c55e' }}></div>
+                                        <span className={styles.legendLabel}>Healthy</span>
                                     </div>
-                                    <div style={{ width: '100%', height: '6px', background: '#f1f5f9', borderRadius: '3px' }}>
-                                        <div style={{ width: `${pGreen}%`, height: '100%', background: '#22c55e', borderRadius: '3px' }}></div>
-                                    </div>
+                                    <span className={styles.legendValue}>{analytics.status.good}</span>
+                                </div>
+                                <div className={styles.progressBarBack}>
+                                    <div className={styles.progressBarFill} style={{ width: `${pGreen}%`, background: '#22c55e' }}></div>
                                 </div>
                             </div>
                         </div>
@@ -185,49 +182,52 @@ export default function DashboardPage() {
                 </div>
 
                 {/* Right Column: Recent Activity */}
-                <div style={cardStyle}>
-                    <h2 style={{ fontSize: '1.25rem', fontWeight: '700', color: '#1e293b', marginBottom: '1.5rem' }}>Recent Actions</h2>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                <div className={styles.card}>
+                    <div className={styles.cardHeader}>
+                        <h2 className={styles.cardTitle}>Recent Actions</h2>
+                        <button
+                            onClick={() => router.push('/actions?tab=COMPLETED')} // Route to Completed Actions
+                            className={styles.cardLink} // Reuse same style
+                        >
+                            View More →
+                        </button>
+                    </div>
+                    <div className={styles.recentList}>
                         {history.length === 0 ? (
                             <div style={{ color: '#94a3b8', textAlign: 'center', padding: '2rem 0' }}>No recent activity.</div>
                         ) : (
                             history.map((h: any, idx: number) => (
-                                <div key={idx} style={{ display: 'flex', gap: '1rem', alignItems: 'center', paddingBottom: '1rem', borderBottom: idx < history.length - 1 ? '1px solid #f1f5f9' : 'none' }}>
-                                    <div style={{
-                                        width: '40px', height: '40px', borderRadius: '8px',
+                                <div key={idx} className={styles.recentItem}>
+                                    <div className={styles.iconBox} style={{
                                         background: h.change_type === 'MATCH' ? '#f0f9ff' : h.change_type === 'UNDERCUT' ? '#fdf2f8' : '#fff7ed',
-                                        display: 'flex', alignItems: 'center', justifyContent: 'center',
                                         color: h.change_type === 'MATCH' ? '#0ea5e9' : h.change_type === 'UNDERCUT' ? '#db2777' : '#ea580c',
-                                        fontSize: '1.2rem'
                                     }}>
                                         {h.change_type === 'MATCH' ? 'M' : h.change_type === 'UNDERCUT' ? 'U' : 'R'}
                                     </div>
-                                    <div style={{ flex: 1 }}>
-                                        <div style={{ fontSize: '0.9rem', fontWeight: '600', color: '#334155' }}>{h.product?.title || 'Unknown Product'}</div>
-                                        <div style={{ fontSize: '0.8rem', color: '#64748b' }}>
-                                            {h.change_type} • <span style={{ textDecoration: 'line-through' }}>{Number(h.old_price).toFixed(2)}</span> → <b>{Number(h.new_price).toFixed(2)}</b>
+                                    <div className={styles.recentDetails}>
+                                        <div className={styles.productTitle}>{h.product?.title || 'Unknown Product'}</div>
+                                        <div className={styles.priceChange}>
+                                            {h.change_type} • <span className={styles.oldPrice}>{Number(h.old_price).toFixed(2)}</span> → <b className={styles.newPrice}>{Number(h.new_price).toFixed(2)}</b>
                                         </div>
                                     </div>
-                                    <div style={{ fontSize: '0.75rem', color: '#94a3b8' }}>
+                                    <div className={styles.date}>
                                         {new Date(h.created_at).toLocaleDateString()}
                                     </div>
                                 </div>
                             ))
                         )}
                     </div>
-                    {history.length > 0 && (
-                        <div style={{ marginTop: 'auto', paddingTop: '1rem', textAlign: 'center' }}>
-                            <button
-                                onClick={() => router.push('/actions?tab=COMPLETED')}
-                                style={{ background: 'none', border: 'none', color: '#64748b', fontSize: '0.85rem', cursor: 'pointer' }}
-                            >
-                                View Full History
-                            </button>
-                        </div>
-                    )}
                 </div>
 
             </div>
-        </div>
+
+            {/* Competitor Dashboard */}
+            <div className={styles.competitorSection}>
+                {competitorStats && (
+                    <CompetitorViz data={competitorStats.competitors} />
+                )}
+            </div>
+
+        </div >
     );
 }

@@ -35,7 +35,7 @@ export default function Sidebar() {
     return (
         <aside className={styles.sidebar}>
             <div className={`${styles.logo} ${collapsed ? styles.collapsed : ''}`}>
-                {collapsed ? 'RA' : 'RetailAnalytics'}
+                {collapsed ? 'DRP' : 'DIY Retail Panel'}
             </div>
 
             <nav className={styles.nav}>

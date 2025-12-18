@@ -60,7 +60,46 @@ export default function SettingsPage() {
 
     return (
         <div style={{ maxWidth: '800px', margin: '0 auto' }}>
-            <h1 style={{ marginBottom: '2rem' }}>Settings</h1>
+            {/* Header - Standardized */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
+                <div>
+                    <h1 style={{ fontSize: '1.8rem', fontWeight: 'bold', color: '#0f172a' }}>Settings</h1>
+                    <p style={{ color: '#64748b' }}>Manage your application preferences.</p>
+                </div>
+            </div>
+
+            <Card title="Overprice Threshold">
+                <div style={{ padding: '1rem 0 1rem 0' }}>
+                    <p style={{ color: 'var(--text-secondary)', marginBottom: '2.5rem' }}>
+                        Set the Unit Price Index threshold for identifying overpriced products.
+                    </p>
+
+                    <div style={{ padding: '0 1rem' }}>
+                        <Slider
+                            min={1.0}
+                            max={2.0}
+                            step={0.01}
+                            value={settings.overprice_threshold}
+                            onChange={(val) => setSettings(prev => ({ ...prev, overprice_threshold: val as number }))}
+                            trackStyle={{ backgroundColor: 'var(--danger)' }}
+                            handleStyle={{ borderColor: 'var(--danger)' }}
+                            marks={{
+                                1.0: '1.0',
+                                1.1: '1.10 (Default)',
+                                1.5: '1.5',
+                                2.0: '2.0'
+                            }}
+                        />
+                    </div>
+
+                    <div style={{ marginTop: '2.5rem', textAlign: 'center' }}>
+                        <div style={{ padding: '1rem', background: '#fee2e2', borderRadius: '8px', display: 'inline-block', minWidth: '200px' }}>
+                            <div style={{ fontSize: '0.9rem', color: '#991b1b' }}>Alert Threshold</div>
+                            <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#991b1b' }}>{settings.overprice_threshold.toFixed(2)}</div>
+                        </div>
+                    </div>
+                </div>
+            </Card>
 
             <Card title="Confidence Levels">
                 <div style={{ padding: '1rem 0 2rem 0' }}>
@@ -117,47 +156,14 @@ export default function SettingsPage() {
                 </div>
             </Card>
 
-            <Card title="Overprice Threshold">
-                <div style={{ padding: '1rem 0 1rem 0' }}>
-                    <p style={{ color: 'var(--text-secondary)', marginBottom: '2.5rem' }}>
-                        Set the Unit Price Index threshold for identifying overpriced products.
-                    </p>
-
-                    <div style={{ padding: '0 1rem' }}>
-                        <Slider
-                            min={1.0}
-                            max={2.0}
-                            step={0.01}
-                            value={settings.overprice_threshold}
-                            onChange={(val) => setSettings(prev => ({ ...prev, overprice_threshold: val as number }))}
-                            trackStyle={{ backgroundColor: 'var(--danger)' }}
-                            handleStyle={{ borderColor: 'var(--danger)' }}
-                            marks={{
-                                1.0: '1.0',
-                                1.1: '1.10 (Default)',
-                                1.5: '1.5',
-                                2.0: '2.0'
-                            }}
-                        />
-                    </div>
-
-                    <div style={{ marginTop: '2.5rem', textAlign: 'center' }}>
-                        <div style={{ padding: '1rem', background: '#fee2e2', borderRadius: '8px', display: 'inline-block', minWidth: '200px' }}>
-                            <div style={{ fontSize: '0.9rem', color: '#991b1b' }}>Alert Threshold</div>
-                            <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#991b1b' }}>{settings.overprice_threshold.toFixed(2)}</div>
-                        </div>
-                    </div>
-                </div>
-            </Card>
-
-            <div style={{ marginTop: '2rem' }}>
+            <div style={{ marginTop: '2rem', textAlign: 'center' }}>
                 <button
                     onClick={saveSettings}
                     disabled={saving}
                     className="btn btn-primary"
                     style={{ padding: '0.75rem 2rem', minWidth: '150px' }}
                 >
-                    {saving ? 'Saving...' : saved ? 'Settings Saved!' : 'Save Settings'}
+                    {saving ? 'Saving...' : saved ? 'Saved!' : 'Save'}
                 </button>
             </div>
         </div>

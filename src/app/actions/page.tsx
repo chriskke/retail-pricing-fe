@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useActionContext } from '../../context/ActionContext';
 import CompetitorTable from '../../components/CompetitorTable';
 import DistributionBar from '../../components/DistributionBar';
@@ -11,6 +11,7 @@ import InputModal from '../../components/InputModal';
 
 export default function ActionBoardPage() {
     const router = useRouter();
+    const searchParams = useSearchParams();
     const { actionBoardItems, removeFromActionBoard, refreshActionBoard } = useActionContext();
     const [products, setProducts] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
@@ -23,6 +24,13 @@ export default function ActionBoardPage() {
     // Stats State
     const [stats, setStats] = useState({ pending: 0, completed: 0 });
 
+    useEffect(() => {
+        const tab = searchParams.get('tab');
+        if (tab === 'PENDING' || tab === 'COMPLETED') {
+            setActiveTab(tab);
+        }
+    }, [searchParams]);
+
     // Pagination
     const [page, setPage] = useState(1);
     const [pagination, setPagination] = useState({ total: 0, totalPages: 1, limit: 20 });
@@ -31,7 +39,7 @@ export default function ActionBoardPage() {
     const [toast, setToast] = useState<{ msg: string, type: 'success' | 'error' } | null>(null);
 
     // Sorting State
-    const [sort, setSort] = useState<{ col: string, order: 'asc' | 'desc' }>({ col: 'added_at', order: 'desc' });
+    const [sort, setSort] = useState<{ col: string, order: 'asc' | 'desc' }>({ col: 'history_created_at', order: 'desc' });
 
     // Selection State
     const [selectedActionItems, setSelectedActionItems] = useState<Set<string>>(new Set());
@@ -96,6 +104,11 @@ export default function ActionBoardPage() {
 
     useEffect(() => {
         setPage(1); // Reset page on tab switch
+        if (activeTab === 'COMPLETED') {
+            setSort({ col: 'history_created_at', order: 'desc' });
+        } else {
+            setSort({ col: 'added_at', order: 'desc' });
+        }
     }, [activeTab]);
 
     useEffect(() => {
@@ -134,6 +147,9 @@ export default function ActionBoardPage() {
         } else if (sort.col === 'new_price') {
             valA = priceActions[a.product_id]?.newPrice || 0;
             valB = priceActions[b.product_id]?.newPrice || 0;
+        } else if (sort.col === 'history_created_at') {
+            valA = new Date(a.history_created_at || 0).getTime();
+            valB = new Date(b.history_created_at || 0).getTime();
         }
 
         if (valA < valB) return -1 * order;
@@ -152,10 +168,21 @@ export default function ActionBoardPage() {
     };
 
     const toggleSelectAll = () => {
-        if (selectedActionItems.size === products.length) {
-            setSelectedActionItems(new Set());
+        const allOnPage = products.every(p => selectedActionItems.has(p.product_id));
+        if (allOnPage) {
+            // Deselect all on this page
+            setSelectedActionItems(prev => {
+                const next = new Set(prev);
+                products.forEach(p => next.delete(p.product_id));
+                return next;
+            });
         } else {
-            setSelectedActionItems(new Set(products.map(p => p.product_id)));
+            // Select all on this page
+            setSelectedActionItems(prev => {
+                const next = new Set(prev);
+                products.forEach(p => next.add(p.product_id));
+                return next;
+            });
         }
     };
 
@@ -466,7 +493,7 @@ export default function ActionBoardPage() {
                         <button
                             onClick={() => setShowReduceModal(true)}
                             disabled={selectedActionItems.size === 0}
-                            style={{ opacity: selectedActionItems.size === 0 ? 0.5 : 1, fontSize: '0.85rem', padding: '0.4rem 0.8rem', background: '#fffbeb', border: '1px solid #fcd34d', color: '#92400e', borderRadius: '4px', cursor: 'pointer' }}>
+                            style={{ opacity: selectedActionItems.size === 0 ? 0.5 : 1, fontSize: '0.85rem', padding: '0.4rem 0.8rem', background: '#f8fafc', border: '1px solid #cbd5e1', color: '#64748b', borderRadius: '4px', cursor: 'pointer' }}>
                             Reduce %
                         </button>
                         <button
@@ -475,14 +502,14 @@ export default function ActionBoardPage() {
                             style={{ opacity: selectedActionItems.size === 0 ? 0.5 : 1, fontSize: '0.85rem', padding: '0.4rem 0.8rem', background: '#f8fafc', border: '1px solid #cbd5e1', color: '#64748b', borderRadius: '4px', cursor: 'pointer' }}>
                             Reset
                         </button>
+                    </div>
+                    <div>
                         <button
                             onClick={handleBulkRemove}
                             disabled={selectedActionItems.size === 0}
-                            style={{ opacity: selectedActionItems.size === 0 ? 0.5 : 1, fontSize: '0.85rem', padding: '0.4rem 0.8rem', background: '#fee2e2', border: '1px solid #fecaca', color: '#dc2626', borderRadius: '4px', cursor: 'pointer', marginLeft: '1rem' }}>
+                            style={{ opacity: selectedActionItems.size === 0 ? 0.5 : 1, fontSize: '0.85rem', padding: '0.4rem 0.8rem', background: '#fee2e2', border: '1px solid #fecaca', color: '#dc2626', borderRadius: '4px', cursor: 'pointer', marginRight: '1rem' }}>
                             Remove
                         </button>
-                    </div>
-                    <div>
                         <button
                             onClick={() => submitPriceChanges()}
                             disabled={Object.keys(priceActions).length === 0}
@@ -523,11 +550,11 @@ export default function ActionBoardPage() {
                         display: 'grid',
                         gridTemplateColumns: activeTab === 'PENDING'
                             ? '50px 10px minmax(200px, 2fr) 100px 100px 100px 100px 200px 80px' // Checkbox | Expander | Generic Structure
-                            : '50px minmax(200px, 2fr) 100px 100px 100px', // Completed: Check | Title | Old | New | Action
+                            : '50px minmax(200px, 2fr) 100px 100px 100px 120px', // Completed: Check | Title | Old | New | Action | Date
                         background: '#f1f5f9',
                         padding: '0.75rem 1rem',
                         fontWeight: '600',
-                        fontSize: '0.85rem',
+                        fontSize: '0.8rem',
                         color: '#475569',
                         borderBottom: '1px solid #e2e8f0',
                         minWidth: '920px',
@@ -536,9 +563,10 @@ export default function ActionBoardPage() {
                         top: 0,
                         zIndex: 10 // Sticky Header
                     }}>
+
                         {activeTab === 'PENDING' ? (
                             <>
-                                <div><input type="checkbox" checked={selectedActionItems.size === products.length && products.length > 0} onChange={toggleSelectAll} /></div>
+                                <div><input type="checkbox" checked={products.length > 0 && products.every(p => selectedActionItems.has(p.product_id))} onChange={toggleSelectAll} /></div>
                                 <div></div> {/* Expander space */}
                                 <div onClick={() => handleSort('title')} style={{ cursor: 'pointer' }}>Product Name {sort.col === 'title' && (sort.order === 'asc' ? '↑' : '↓')}</div>
                                 <div onClick={() => handleSort('display_price')} style={{ textAlign: 'center', cursor: 'pointer' }}>Ours (RM) {sort.col === 'display_price' && (sort.order === 'asc' ? '↑' : '↓')}</div>
@@ -551,11 +579,12 @@ export default function ActionBoardPage() {
                         ) : (
                             // Completed Header
                             <>
-                                <div><input type="checkbox" checked={selectedActionItems.size === products.length && products.length > 0} onChange={toggleSelectAll} /></div>
+                                <div><input type="checkbox" checked={products.length > 0 && products.every(p => selectedActionItems.has(p.product_id))} onChange={toggleSelectAll} /></div>
                                 <div onClick={() => handleSort('title')} style={{ cursor: 'pointer' }}>Product Name {sort.col === 'title' && (sort.order === 'asc' ? '↑' : '↓')}</div>
                                 <div onClick={() => handleSort('history_old_price')} style={{ textAlign: 'center', cursor: 'pointer' }}>Old (RM) {sort.col === 'history_old_price' && (sort.order === 'asc' ? '↑' : '↓')}</div>
                                 <div onClick={() => handleSort('history_new_price')} style={{ textAlign: 'center', cursor: 'pointer' }}>New (RM) {sort.col === 'history_new_price' && (sort.order === 'asc' ? '↑' : '↓')}</div>
                                 <div style={{ textAlign: 'center' }}>Action</div>
+                                <div onClick={() => handleSort('history_created_at')} style={{ textAlign: 'center', cursor: 'pointer' }}>Changed Date {sort.col === 'history_created_at' && (sort.order === 'asc' ? '↑' : '↓')}</div>
                             </>
                         )}
                     </div>
@@ -581,7 +610,7 @@ export default function ActionBoardPage() {
                                             display: 'grid',
                                             gridTemplateColumns: activeTab === 'PENDING'
                                                 ? '50px 10px minmax(200px, 2fr) 100px 100px 100px 100px 200px 80px'
-                                                : '50px minmax(200px, 2fr) 100px 100px 100px',
+                                                : '50px minmax(200px, 2fr) 100px 100px 100px 120px',
                                             padding: '1rem',
                                             alignItems: 'center',
                                             cursor: 'pointer'
@@ -602,33 +631,33 @@ export default function ActionBoardPage() {
                                                         <img src={p.image_url} alt="" style={{ width: '40px', height: '40px', borderRadius: '4px', objectFit: 'cover' }} />
                                                     ) : <div style={{ width: '40px', height: '40px', background: '#f1f5f9', borderRadius: '4px' }} />}
                                                     <div>
-                                                        <div style={{ fontWeight: '500', color: '#0f172a' }}>{p.title}</div>
-                                                        <div style={{ fontSize: '0.75rem', color: '#64748b' }}>ID: {p.product_id}</div>
+                                                        <div style={{ fontWeight: '500', color: '#0f172a', fontSize: '0.9rem' }}>{p.title}</div>
+                                                        <div style={{ fontSize: '0.7rem', color: '#64748b' }}>ID: {p.product_id}</div>
                                                     </div>
                                                 </div>
                                                 <div style={{ textAlign: 'center' }}>
-                                                    <div style={{ fontWeight: 'bold' }}>{p.display_price?.toFixed(2)}</div>
-                                                    <div style={{ fontSize: '0.75rem', color: '#64748b' }}>{p.normalized_price?.toFixed(2)}</div>
+                                                    <div style={{ fontWeight: 'bold', fontSize: '0.9rem' }}>{p.display_price?.toFixed(2)}</div>
+                                                    <div style={{ fontSize: '0.7rem', color: '#64748b' }}>{p.normalized_price?.toFixed(2)}</div>
                                                 </div>
                                                 <div style={{ textAlign: 'center' }}>
                                                     {/* New (RM) Column: Show Display Price (Big) and Std Price (Small) */}
-                                                    <div style={{ fontWeight: 'bold', color: action.newPrice ? '#166534' : '#94a3b8' }}>
+                                                    <div style={{ fontWeight: 'bold', color: action.newPrice ? '#166534' : '#94a3b8', fontSize: '0.9rem' }}>
                                                         {action.newPrice ? getDerivedDisplayPrice(p, action.newPrice)?.toFixed(2) : '-'}
                                                     </div>
-                                                    <div style={{ fontSize: '0.75rem', color: action.newPrice ? '#166534' : '#94a3b8' }}>
+                                                    <div style={{ fontSize: '0.7rem', color: action.newPrice ? '#166534' : '#94a3b8' }}>
                                                         {action.newPrice ? action.newPrice.toFixed(2) : '-'}
                                                     </div>
                                                 </div>
                                                 <div style={{ textAlign: 'center' }}>
-                                                    <div style={{ fontWeight: 'bold' }}>{p.cheapest_match_display_price?.toFixed(2) || '-'}</div>
-                                                    <div style={{ fontSize: '0.75rem', color: '#64748b' }}>{p.cheapest_match_price?.toFixed(2) || '-'}</div>
+                                                    <div style={{ fontWeight: 'bold', fontSize: '0.9rem' }}>{p.cheapest_match_display_price?.toFixed(2) || '-'}</div>
+                                                    <div style={{ fontSize: '0.7rem', color: '#64748b' }}>{p.cheapest_match_price?.toFixed(2) || '-'}</div>
                                                 </div>
-                                                <div style={{ textAlign: 'center', fontWeight: 'bold', color: worseIndexColor }}>
+                                                <div style={{ textAlign: 'center', fontWeight: 'bold', color: worseIndexColor, fontSize: '0.9rem' }}>
                                                     {p.worse_index?.toFixed(2)}
                                                 </div>
                                                 <div onClick={e => e.stopPropagation()} style={{ padding: '0 0.5rem' }}>
                                                     <select
-                                                        style={{ width: '100%', padding: '4px', borderRadius: '4px', border: '1px solid #cbd5e1', fontSize: '0.85rem' }}
+                                                        style={{ width: '100%', padding: '4px', borderRadius: '4px', border: '1px solid #cbd5e1', fontSize: '0.8rem' }}
                                                         value={action.type || ''}
                                                         onChange={(e) => handleActionChange(p.product_id, e.target.value as any, action.value)}
                                                     >
@@ -642,7 +671,7 @@ export default function ActionBoardPage() {
                                                         <input
                                                             type="text"
                                                             placeholder={action.type === 'MANUAL' ? "Price" : "%"}
-                                                            style={{ width: '100%', marginTop: '4px', padding: '4px', borderRadius: '4px', border: '1px solid #cbd5e1', fontSize: '0.85rem' }}
+                                                            style={{ width: '100%', marginTop: '4px', padding: '4px', borderRadius: '4px', border: '1px solid #cbd5e1', fontSize: '0.8rem' }}
                                                             value={action.value || ''}
                                                             onChange={(e) => handleActionChange(p.product_id, action.type, e.target.value)}
                                                             onClick={e => e.stopPropagation()}
@@ -697,6 +726,9 @@ export default function ActionBoardPage() {
                                                         {p.history_action_type || '-'}
                                                     </span>
                                                 </div>
+                                                <div style={{ textAlign: 'center', fontSize: '0.8rem', color: '#64748b' }}>
+                                                    {p.history_created_at ? new Date(p.history_created_at).toLocaleDateString() : '-'}
+                                                </div>
                                             </>
                                         )}
                                     </div>
@@ -731,7 +763,8 @@ export default function ActionBoardPage() {
                         </div>
                     )}
                 </div>
-            )}
-        </div>
+            )
+            }
+        </div >
     );
 }
