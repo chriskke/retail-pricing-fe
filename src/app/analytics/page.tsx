@@ -281,12 +281,11 @@ export default function AnalyticsPage() {
             {toast && <ToastNotification message={toast.msg} type={toast.type} onClose={() => setToast(null)} />}
 
             {/* Header */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
-                <div>
-                    <h1 style={{ fontSize: '1.8rem', fontWeight: 'bold', color: '#0f172a' }}>Analytics</h1>
-                    <p style={{ color: '#64748b' }}>Analyze market trends and competitor pricing.</p>
-                </div>
+            <div style={{ marginBottom: '2rem' }}>
+                <h1 style={{ fontSize: '1.8rem', fontWeight: 'bold', color: '#0f172a' }}>Analytics</h1>
+                <p style={{ color: '#64748b' }}>Analyze market trends and competitor pricing.</p>
             </div>
+
 
             {/* 1. Top Summary Bar (Dynamic based on Tab) */}
             {activeTab === 'products' ? (

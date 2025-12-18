@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import '../styles/globals.css';
 import Sidebar from '../components/Sidebar';
+import FloatingAiChat from '../components/FloatingAiChat';
 import { ActionProvider } from '../context/ActionContext';
 
 export const metadata: Metadata = {
@@ -25,6 +26,7 @@ export default function RootLayout({
               {children}
             </main>
           </div>
+          <FloatingAiChat />
         </ActionProvider>
       </body>
     </html>

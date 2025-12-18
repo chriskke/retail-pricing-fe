@@ -199,14 +199,6 @@ export default function Home() {
             <h3 className={styles.successTitle}>Data Imported Successfully</h3>
             <p className={styles.successDesc}>Your product data is ready to be analyzed.</p>
 
-            {stats && (
-              <div className={styles.statsRow}>
-                <div className={styles.statItem}>
-                  <div className={styles.statValue}>{stats.rowsProcessed || '—'}</div>
-                  <div className={styles.statLabel}>Products Imported</div>
-                </div>
-              </div>
-            )}
 
             <div style={{ display: 'flex', gap: '1rem' }}>
               <button
