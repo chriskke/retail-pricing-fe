@@ -59,7 +59,7 @@ export default function Sidebar() {
 
             <button
                 onClick={() => setCollapsed(!collapsed)}
-                className={`${styles.toggleButton} ${collapsed ? styles.collapsed : ''}`}
+                className={`${styles.link} ${styles.toggleButton} ${collapsed ? styles.collapsed : ''}`}
             >
                 <div className={`${styles.toggleIcon} ${collapsed ? styles.collapsed : ''}`}>
                     <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor">
